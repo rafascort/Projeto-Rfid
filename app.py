@@ -3,7 +3,6 @@ import sqlite3
 from pubnub.pnconfiguration import PNConfiguration
 from pubnub.pubnub import PubNub
 
-# Classe AsyncConn para PubNub
 class AsyncConn:
     def __init__(self, id: str, channel_name: str) -> None:
         config = PNConfiguration()
@@ -27,15 +26,12 @@ class AsyncConn:
         except Exception as e:
             print(f"❌ Erro ao publicar no PubNub: {e}")
 
-# Inicializa Flask e PubNub
 app = Flask(__name__)
 pubnub = AsyncConn("FlaskApp", "flask_channel")
 
-# Conectar ao banco de dados
 def connect_db(db_name):
     return sqlite3.connect(db_name, timeout=5)
 
-# Criar tabelas se não existirem
 def create_tables():
     with connect_db('data.db') as conn:
         cursor = conn.cursor()
@@ -60,17 +56,14 @@ def create_tables():
         """)
         conn.commit()
 
-# Inicializa tabelas no início
 create_tables()
 
-# Publicar no PubNub
 def publish_to_pubnub(data):
     pubnub.publish(data)
 
 @app.route('/entradas-saidas', methods=['POST', 'GET'])
 def entradas_saidas():
     try:
-        # ====== POST ====================================================================
         if request.method == "POST":
             tipo_operacao = request.json.get('tipo_operacao')
             data_horario = request.json.get('data_horario')
@@ -82,11 +75,9 @@ def entradas_saidas():
             if None in (tipo_operacao, data_horario, cartao_id, nome):
                 return jsonify({"error": "Dados insuficientes fornecidos"}), 400
 
-            # Se for "acesso negado", apenas registra no banco sem nome de usuário
             if tipo_operacao == "acesso negado":
                 nome = "Desconhecido"
 
-            # Insere no banco de dados SQLite
             with connect_db('data.db') as conn:
                 cursor = conn.cursor()
                 cursor.execute('''
@@ -95,7 +86,6 @@ def entradas_saidas():
                 ''', (tipo_operacao, data_horario, cartao_id, nome))
                 conn.commit()
 
-            # Publica no PubNub
             try:
                 publish_to_pubnub({"tipo_operacao": tipo_operacao, "data_horario": data_horario, "cartao_id": cartao_id, "nome": nome})
             except Exception as e:
@@ -109,7 +99,6 @@ def entradas_saidas():
                 "nome": nome
             }), 201
 
-        # ====== GET =====================================================================
         elif request.method == "GET":
             with connect_db('data.db') as conn:
                 cursor = conn.cursor()

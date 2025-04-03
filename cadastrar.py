@@ -4,14 +4,11 @@ import sqlite3
 import os
 import time
 
-# Inicializa o leitor RFID
 leitorRfid = SimpleMFRC522()
 
-# Conectar ao banco de dados
 def connect_db():
     return sqlite3.connect('users.db', timeout=10)
 
-# Criar a tabela se não existir
 def create_table():
     with connect_db() as conn:
         cursor = conn.cursor()
@@ -23,7 +20,6 @@ def create_table():
         """)
         conn.commit()
 
-# Função para cadastrar um novo cartão
 def cadastrar_cartao():
     try:
         os.system("clear")
@@ -39,14 +35,12 @@ def cadastrar_cartao():
         with connect_db() as conn:
             cursor = conn.cursor()
 
-            # Verifica se o cartão já existe
             cursor.execute("SELECT nome FROM users WHERE cartao_id = ?", (tag,))
             existing = cursor.fetchone()
 
             if existing:
                 print(f"⚠ O cartão já está cadastrado para {existing[0]}.")
             else:
-                # Insere no banco de dados
                 cursor.execute("INSERT INTO users (cartao_id, nome) VALUES (?, ?)", (tag, nome))
                 conn.commit()
                 print(f"✅ Cartão {tag} cadastrado com sucesso para {nome}!")
@@ -57,10 +51,8 @@ def cadastrar_cartao():
     finally:
         GPIO.cleanup()
 
-# Criar tabela ao iniciar
 create_table()
 
-# Loop principal para cadastrar vários cartões
 try:
     while True:
         os.system("clear")

@@ -6,14 +6,11 @@ import os
 import sqlite3
 from datetime import datetime
 
-# Inicializa o leitor RFID
 leitorRfid = SimpleMFRC522()
 
-# Conectar ao banco de dados local
 def connect_db():
     return sqlite3.connect('users.db', timeout=10)
 
-# Criar tabelas no banco local
 def create_tables():
     with connect_db() as conn:
         cursor = conn.cursor()
@@ -37,7 +34,6 @@ def create_tables():
 
         conn.commit()
 
-# Definir tipo de operação (alternância entre entrada e saída)
 def definir_tipo_operacao(cartao_id):
     with connect_db() as conn:
         cursor = conn.cursor()
@@ -49,7 +45,6 @@ def definir_tipo_operacao(cartao_id):
     
     return "saida" if last_record and last_record[0] == "entrada" else "entrada"
 
-# Enviar requisição POST para o servidor
 def send_post_request(tipo_operacao, data_horario, cartao_id, nome):
     data = {
         'tipo_operacao': tipo_operacao,
@@ -68,7 +63,6 @@ def send_post_request(tipo_operacao, data_horario, cartao_id, nome):
     except Exception as e:
         print(f"❌ Erro na conexão: {e}")
 
-# Ler o cartão RFID
 def ler_cartao():
     try:
         os.system("clear")
@@ -91,7 +85,6 @@ def ler_cartao():
         data_horario = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f"🆔 ID: {tag} | Nome: {nome} | Tipo: {tipo_operacao}")
 
-        # Enviar para o servidor e salvar localmente
         send_post_request(tipo_operacao, data_horario, tag, nome)
 
         with connect_db() as conn:
@@ -106,10 +99,8 @@ def ler_cartao():
     except KeyboardInterrupt:
         print("⏹ Programa interrompido.")
 
-# Criar tabelas no início
 create_tables()
 
-# Loop principal
 try:
     while True:
         os.system("clear")
